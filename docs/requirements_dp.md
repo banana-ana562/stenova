@@ -1,2 +1,104 @@
 # Requirements - Drivers and Peripherals
+Date: 10/21/2026
 
+## STM32 Peripherals (CubeMX)
+### I2C1 (PA9, PA10): Touch Sensor Input (Touch Controller 0 & Touch Controller 1)
+
+
+### I2C3 (PC0, PC1): Touch Controller 2 & LED Controller
+
+
+### BLE: HID 
+
+
+### PWM: Brightness of LEDs
+
+
+### SysTick
+
+## Drivers
+### MTCH2120 Driver (Touch Controllers 0-2)
+MTCH2120 Communication
+- Uses a 16-bit register address (upper 4 bits are for lumped buttons 12-15, and lower bits 0-11 are for button detection)
+- Multi-byte register data must be combined in the correct byte order
+- The returned HAL status must be checked
+
+**1. Information Stored by Each Object**
+This driver should contain everything needed to communicate with one touch controller.
+The driver class should create three objects for each touch controller. Each MTCH2120 object should remember:
+- Pointer to its STM32WB HAL I2C connection
+- Its 7-bit I2C address
+- Its most recent 12-bit touch status
+- Whether initialization succeeded
+Since there are only 12 capacitive-touch channels we will need a total of three touch controllers (0-2).
+The three touch controllers will have different bus and address combinations:
+
+| Controller | I²C Peripheral | Address |
+| --- | --- | --- |
+| Controller 0 | I2C1 | 0x20 |
+| Controller 1 | I2C1 | 0x21 |
+| Controller 2 | I2C3 | 0x20 |
+
+*Note: There is also a "lump" feature that allows multiple buttons to be combined to form a single button. 
+
+**2. Register Constants**
+Important initial registers to include:
+
+| Register | Address | Description |
+| --- | --- | --- |
+| Device Identification Number (DEVID) | 0x0000 | Reset: 0x0B; Should return 0x0B  |
+| Device Version (VER) | 0x0001 | Reset: 0x10; Reports firmware version, Major Version Number: 1, Minor Version Number: 0 |
+| Device Status (DEVSTA) | 0x0100 | 0x20 |
+| Button Status (BTNSTA) | 0x0102 | 0: No Detect, 1: Touch Detected; Initialize at 0 |
+| Sensor Control (SENCTRL) | Offset: 0x0E00 + n*0x01 | n = 0...15; See 4.2.12 to enable, suspend, or calibrate a channel  |
+| Touch Measurement Period (MP) | 0x1600 | Range: 0 - 250ms |
+
+*Note: If the configured Touch Measurement Period is less than the minimum required Measurement Period for all enabled channels, then the minimum Measurement Period will be applied automatically.
+
+Reference: [2] 4.2.1. Memory Map Summary
+
+**3. Private I²C Functions**
+- Read an 8-bit register
+- Read a 16-bit register
+- Write an 8-bit register
+- Write a 16-bit register
+- Verify a valid channel number
+- Verify the device ID
+- Wait for the device to become ready
+
+These functions will call HAL routines such as:
+HAL_I2C_IsDeviceReady
+HAL_I2C_Mem_Read
+HAL_I2C_Mem_Write
+
+**4. Public Driver Functions**
+
+| Function | Description |
+| --------------- | --------------- |
+| SystemInit()    | Verify and initialize controller  |
+| isInitialized() | Returns initialization state   |
+| readButtonStatus() | Reads and stores all 12 touch inputs   |
+| getButtonStatus() | Returns the stored touch mask   |
+| Touch_Detect(channel) | Tests one bit in the stored mask   |
+| getLastError() | Reports the previous driver error   |
+
+Configuration Functions to Add Later:
+- enableChannel()
+- calibrateChannel()
+- calibrateAll()
+- setMeasurementPeriod()
+- setThreshold()
+- reset()
+
+**5. Useful Information**
+Initialization Procedure: Reference 1, 3.2.2
+
+### IS31FL3236A Driver (LED Controller)
+
+### BLE
+
+### UART (?) - For debug
+
+## References
+1. [MTCH2120 Datasheet](https://ww1.microchip.com/downloads/aemDocuments/documents/MCU08/ProductDocuments/DataSheets/MTCH2120-12CH-CapacitiveTouchControl-DataSheet-DS40002613.pdf)
+2. [MTCH2120 Evaluation Kit User Guide](https://ww1.microchip.com/downloads/aemDocuments/documents/MCU08/ProductDocuments/UserGuides/MTCH2120-EvaluationKit-UserGuide-DS50003775.pdf) 
