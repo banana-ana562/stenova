@@ -124,6 +124,9 @@ Will also need bit masks for:
 - Global-enable or global-shutdown bit
 - Output-frequency bit
 
+<img width="624" height="208" alt="image" src="https://github.com/user-attachments/assets/b1c603c2-4bca-4a98-a0cf-1adb74b8c032" />
+
+
 ### BLE
 
 ### UART (?) - For debug
