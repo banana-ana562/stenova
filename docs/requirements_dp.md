@@ -105,7 +105,24 @@ Initialization Procedure: Reference 1, 3.2.2
 - LED_MAP.c: Later on, this file can map touch regions to LED channels
 
 ### 2. Register Definitions
+| Register | Address | Description |
+| --- | --- | --- |
+| Shutdown (SSD) | 0x00 | The Shutdown Register sets software shutdown mode |
+| PWM Channel 1 | 0x01 | Start of the 36 PWM registers |
+| PWM Channel 36 | 0x24 | End of the PWM register range |
+| PWM Update Register | 0x25 | Load PWM Register and LED Control Register's data |
+| LED Control Channel 1 | 0x26 | Start of the 36 LED-control registers |
+| LED Control Channel 36 | 0x49 | End of the 36 LED-control registers |
+| Global Control Register (G_EN) | 0x4A | G_EN = 0: Normal operation; G_EN = 1: Shutdown all LEDs |
+| Output Frequency Register (OFS) | 0x4B | OFS = 0: 3kHz; OFS = 1: 22kHz; The Output Frequency Setting Register selects a fixed PWM operating frequency for all output channels |
+| Reset Register | 0x4F | Once the user writes "0x00" data to the Reset Register. All registers will be reset to their default values |
 
+Will also need bit masks for:
+- Software-shutdown bit
+- Channel enable bit
+- Current-scale field
+- Global-enable or global-shutdown bit
+- Output-frequency bit
 
 ### BLE
 
